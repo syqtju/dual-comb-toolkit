@@ -11,12 +11,12 @@ latex = True # Whether to use LaTeX for plotting.
 if latex:
     use_latex()
 
-wl, transmission = get_measurement_spectrum(measurement_name, acq_freq=acq_freq)
+freq, spec = get_measurement_spectrum(measurement_name, acq_freq=acq_freq)
 
-# Plot the measured transmission spectrum.
-plt.plot(wl, transmission, color="red")
-plt.xlabel("Wavelength (nm)")
-plt.ylabel("Transmission [-]")
-plt.title(f'Measured spectrum of\n{measurement_name}.')
+# Plot the measured FFT spectrum.
+plt.plot(freq, spec, color="red")
+plt.xlabel("Frequency [Hz]")
+plt.ylabel("Amplitude [a.u.]")
+plt.title(f'FFT spectrum of\n{measurement_name}.')
 plt.tight_layout(**article_tight)
 plt.show()

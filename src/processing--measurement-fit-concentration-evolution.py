@@ -1,4 +1,5 @@
 import os
+from time import time
 
 import numpy as np
 from matplotlib import animation
@@ -106,8 +107,8 @@ if latex:
 # Fitting                                                                                          #
 ####################################################################################################
 
-integration_time = 0.025  # s
-time_between_measurements = 0.025  # s
+integration_time = 0.00005  # s
+time_between_measurements = 0.00005  # s
 
 ####################################################################################################
 # Animation                                                                                        #
@@ -141,10 +142,18 @@ measured_spectra: list[MeasuredSpectrum] = []
 concentrations = []
 fitted_spectra = []
 min_abs = 10
+simulator = None
+
 for start, end in intervals:
+    # Compute the transmission spectrum for the current time interval
+    t0 = time()
     m.compute_transmission(start=start, end=end, save=True)
     m.remove_teeth(remove_teeth_indices)
     measured_spectrum = m.transmission_spectrum
+    print(f"Time for computing transmission: {(time() - t0)/100:.2f} ms")
+
+    # Fit the concentration for the current time interval
+    t0 = time()
     f = ConcentrationFitter(
         meas_transmission=measured_spectrum,
         wl_min=wl_min,
@@ -155,12 +164,22 @@ for start, end in intervals:
         upper_bound=upper_bound,
         verbose=verbose,
         database=database,
+        simulator=simulator,
+        exit_gpu=False,
     )
     concentrations.append(f.concentration)
+    print(f"Time for fitting: {time() - t0:.2f} s")
+
+    # Store the results for the current time interval
     fitted_spectra.append(f.simulated_transmission)
     measured_spectra.append(f.measured_transmission)
     min_abs = min(min_abs, measured_spectra[-1].y_nm.min())
+    simulator = f.simulator
 
+    print(f"Completed interval number {len(concentrations)} / {len(intervals)}")
+
+if simulator and simulator.use_gpu:
+    simulator.exit_gpu()
 
 fig = plt.figure(figsize=(6, 4.5), dpi=(1920 / 6))
 ax = plt.gca()  # Get current axes
