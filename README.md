@@ -1,4 +1,4 @@
-# Dual-Comb Toolkit
+# Dual-Comb Toolkit: A Python-based library for dual-comb spectroscopy data processing
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18040669.svg)](https://doi.org/10.5281/zenodo.18040669)
 
@@ -385,7 +385,7 @@ sudo apt install dvipng
 ```bib
 @misc{bernat_frangi_2025_18040669,
   author       = {Frangi, Bernat},
-  title        = {Dual-{C}omb {T}oolkit [software]},
+  title        = {Dual-{C}omb {T}oolkit: {A} {P}ython-based library for dual-comb spectroscopy data processing},
   month        = 12,
   year         = 2025,
   howpublished = {{Z}enodo},
