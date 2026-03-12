@@ -102,12 +102,12 @@ take some time. Please be patient!
 <details>
 <summary><b>Line simulation</b></summary>
 
-You can simulate absorption spectra using the `src/line-simulator.py` script. You can define the
-simulation parameters directly in the script. Navigate to the `src` directory and run the script
-as follows:
+You can simulate absorption spectra using the `src/simulation--absorption-lines.py` script. You can
+define the simulation parameters directly in the script. Navigate to the `src` directory and run the
+script as follows:
 
 ```bash
-python line-simulator.py
+python simulation--absorption-lines.py
 ```
 
 </details>
@@ -115,31 +115,32 @@ python line-simulator.py
 <details>
 <summary><b>Manual measurement processing</b></summary>
 
-You can manually process dual-comb measurements using the `src/process-measurement.py` script. You
-can define the measurement parameters directly in the script, including the path to the measurement 
-to process and the path to the set of measurements to use for baseline correction. This last part is
-useful to remove etalon effects and other systematic noise from the measurement. Navigate to the 
-`src` directory and run the script as follows:
+You can manually process dual-comb measurements using the `src/processing--measurement-manual.py`
+script. You can define the measurement parameters directly in the script, including the path to the
+measurement to process and the path to the set of measurements to use for baseline correction. This
+last part is useful to remove etalon effects and other systematic noise from the measurement.
+Navigate to the `src` directory and run the script as follows:
 
 ```bash
-python process-measurement.py
+python processing--measurement-manual.py
 ```
 
 Here is an example of the output plot:
 
 ![Example processed plot](assets/process-measurement-example.svg)
 
-To characterize the baseline, there is also the `src/process-baseline.py` script. You can run it as
-follows:
+To characterize the baseline, there is also the `src/processing--baseline.py` script. You can run it
+as follows:
 
 ```bash
-python process-baseline.py
+python processing--baseline.py
 ```
 
-And there is also a simple script to view the raw spectrum of any measurement, `src/measurement-spectrum.py`:
+And there is also a simple script to view the raw spectrum of any measurement,
+`src/processing--spectrum.py`:
 
 ```bash
-python measurement-spectrum.py
+python processing--spectrum.py
 ```
 
 An example of the output plot from this script is shown below:
@@ -152,12 +153,12 @@ An example of the output plot from this script is shown below:
 <summary><b>Concentration fitting</b></summary>
 
 You can fit processed dual-comb measurements to retrieve gas concentration using the
-`src/fit-measurement.py` script. You can define the fitting parameters directly in the script,
-very similarly to the `src/process-measurement.py` script. Navigate to the `src` directory and run
-the script as follows:
+`src/processing--measurement-fit-concentration.py` script. You can define the fitting parameters
+directly in the script, very similarly to the `src/processing--measurement-manual.py` script.
+Navigate to the `src` directory and run the script as follows:
 
 ```bash
-python fit-measurement.py
+python processing--measurement-fit-concentration.py
 ```
 
 Here is an example of the output plot:
@@ -169,13 +170,14 @@ Here is an example of the output plot:
 <details>
 <summary><b>2D Concentration mapping</b></summary>
 
-You can map concentration across multiple measurement positions using the `src/map-measurement.py`
-script. You can define the mapping parameters directly in the script. To ensure correct mapping, the
-measurements should be named according to their position, e.g., `Position-X1-Y1`, `Position-X2-Y5`, 
-etc. Navigate to the `src` directory and run the script as follows:
+You can map concentration across multiple measurement positions using the
+`src/processing--measurement-fit-concentration-map.py` script. You can define the mapping parameters
+directly in the script. To ensure correct mapping, the measurements should be named according to
+their position, e.g., `Position-X1-Y1`, `Position-X2-Y5`, etc. Navigate to the `src` directory and
+run the script as follows:
 
 ```bash
-python map-measurement.py
+python processing--measurement-fit-concentration-map.py
 ```
 
 A report is generated in the `reports/` directory, containing the concentration map and configuration
@@ -244,11 +246,11 @@ End of report.
 <summary><b>Time evolution of concentration</b></summary>
 
 You can analyze the temporal evolution of concentration within measurements using the
-`src/measurement-evolution.py` script. You can define the analysis parameters directly in the
-script. Navigate to the `src` directory and run the script as follows:
+`src/processing--measurement-fit-concentration-evolution.py` script. You can define the analysis
+parameters directly in the script. Navigate to the `src` directory and run the script as follows:
 
 ```bash
-python measurement-evolution.py
+python processing--measurement-fit-concentration-evolution.py
 ```
 
 Here is an example of the output `.csv` file and animation:
@@ -273,12 +275,12 @@ Time [s],Concentration [VMR]
 <details>
 <summary><b>Simulation of measurements</b></summary>
 
-You can simulate realistic, noisy dual-comb measurements using the `src/measurement-simulator.py`
+You can simulate realistic, noisy dual-comb measurements using the `src/simulation--measurement.py`
 script. You can define the simulation parameters, including the amount of noise and the noise model,
 directly in the script. Navigate to the `src` directory and run the script as follows:
 
 ```bash
-python measurement-simulator.py
+python simulation--measurement.py
 ```
 
 Here is an example of the output plot:
@@ -290,14 +292,14 @@ Here is an example of the output plot:
 <details>
 <summary><b>Optimization of comb parameters</b></summary>
 
-The `src/fit-simulated-measurements.py` script allows you to generate synthetic dual-comb
+The `src/configs--simulated-fittings-perform.py` script allows you to generate synthetic dual-comb
 measurements with varying comb parameters (number of teeth and comb spacing) and fit them to
 retrieve gas concentration. This helps in optimizing the comb parameters for specific experimental
 setups, by studying their effect on the fitting accuracy. You can define the optimization parameters 
 directly in the script. Navigate to the `src` directory and run the script as follows:
 
 ```bash
-python fit-simulated-measurements.py
+python configs--simulated-fittings-perform.py
 ```
 
 The script generates a report in the `reports/` directory, containing the fitting results for each set of
@@ -326,12 +328,12 @@ Number of teeth,Comb spacing (Hz),Mean concentration (VMR),Standard deviation (V
 ...
 ```
 
-The script `src/configuration-plots.py` can be used to generate plots from the report data, to 
-help visualize the optimization results and choose the best comb parameters. Run it as follows (make
-sure you change the path to the report file in the script if needed):
+The script `src/configs--simulated-fittings-plot.py` can be used to generate plots from the report
+data, to help visualize the optimization results and choose the best comb parameters. Run it as
+follows (make sure you change the path to the report file in the script if needed):
 
 ```bash
-python configuration-plots.py
+python configs--simulated-fittings-plot.py
 ```
 
 Here is an example of the output plots:
