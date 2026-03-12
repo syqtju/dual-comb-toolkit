@@ -193,13 +193,13 @@ def compute_transmission(
     ta = TransmissionAnalyser(t, sample_signal, reference_signal, **kwargs)
     tr_freq, tr_amp = ta.transmission_freq, ta.transmission_amp
 
+    if baseline:
+        tr_freq, tr_amp = baseline.correct_transmission(tr_freq, tr_amp)
+
     if normalize:
         tr_freq, tr_amp = normalize_transmission(
             tr_freq, tr_amp, replace_outliers=False
         )
-
-    if baseline:
-        tr_freq, tr_amp = baseline.correct_transmission(tr_freq, tr_amp)
 
     return MeasuredSpectrum(tr_freq, tr_amp, xu="Hz")
 
@@ -398,6 +398,9 @@ class Measurement:
             raise ValueError(
                 "Transmission spectrum must be computed before removing a tooth."
             )
+
+        if not teeth_indices:
+            return
 
         teeth_indices = [ti - 1 for ti in teeth_indices]  # Convert to 0-indexed
 

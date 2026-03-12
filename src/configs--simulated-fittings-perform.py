@@ -272,7 +272,6 @@ if use_latex:
 # Simulate for every combination of number of teeth and comb spacing                               #
 ####################################################################################################
 
-
 for nr_teeth, spacing in zip(numbers_of_teeth, comb_spacings):
     # Update iteration variables ###################################################################
 
