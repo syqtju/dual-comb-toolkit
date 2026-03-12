@@ -20,7 +20,7 @@ def assemble_normal_fitter(
     conditions: dict[str, float],
     initial_guess: float = 0.001,
     **kwargs,
-) -> "Callable[..., tuple[ndarray, ndarray]]":
+) -> "tuple[Callable[..., tuple[ndarray, ndarray]], Simulator]":
     """
     Assemble a normal fitter for the concentration fitting process.
     This function returns a callable that can be used to simulate the transmission spectrum for a
@@ -53,6 +53,8 @@ def assemble_normal_fitter(
     callable[..., tuple[ndarray, ndarray]]
         A callable that takes a concentration as input and returns the simulated transmission spectrum
         as a tuple of frequency and amplitude arrays.
+    Simulator
+        Simulator used for the fitting.
     """
     from lib.combs import to_frequency
     from lib.defaults import DATABASE
@@ -96,7 +98,7 @@ def assemble_normal_fitter(
         wl_ref, a_ref = s.get_transmission_spectrum(wl_min, wl_max)
         return to_frequency(wl_ref, a_ref)
 
-    return simulate_transmission
+    return simulate_transmission, s
 
 
 def assemble_interpolated_fitter(
@@ -231,12 +233,16 @@ def fit_concentration(
         Frequency data of the measured spectrum in Hz.
     a_sample : ndarray
         Amplitude data of the measured spectrum.
+    simulator : Optional[Simulator]
+        Simulator used for the fitting. Only returned if `fitter` is 'normal' and the simulator was
+        initialized within this function.
     """
     from lib.defaults import DATABASE
 
     tol = 1e-6
     database = kwargs.get("database", DATABASE)
     verbose = kwargs.get("verbose", False)
+    simulator = None
 
     condition_names = ["pressure", "temperature", "length"]
     for name in condition_names:
@@ -267,7 +273,7 @@ def fit_concentration(
         use_gpu: bool = kwargs.get("use_gpu", False)
         exit_gpu: bool = kwargs.get("exit_gpu", True)
 
-        simulate_transmission = assemble_normal_fitter(
+        simulate_transmission, simulator = assemble_normal_fitter(
             molecule,
             wl_min,
             wl_max,
@@ -328,7 +334,7 @@ def fit_concentration(
             f"Fitted concentration: {concentration:.6f} VMR ({nr_iterations} iterations and {nr_function_evaluations} objective function evaluations)."
         )
 
-    return concentration, f_ref, a_ref, meas_freq, meas_amp * scaling_factor
+    return concentration, f_ref, a_ref, meas_freq, meas_amp * scaling_factor, simulator
 
 
 class ConcentrationFitter:
@@ -494,7 +500,7 @@ class ConcentrationFitter:
         if self.verbose:
             print(f"Fitting {self._pre_meas_trasmission.meas_name} ... ", end="")
 
-        concentration, sim_freq, sim_amp, meas_freq, meas_amp = fit_concentration(
+        concentration, sim_freq, sim_amp, meas_freq, meas_amp, self.simulator = fit_concentration(
             self._pre_meas_trasmission.x_hz,
             self._pre_meas_trasmission.y_hz,
             self.molecule,
