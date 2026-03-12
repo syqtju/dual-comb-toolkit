@@ -183,8 +183,8 @@ class Result:
 
         return plt
 
-    def show_plot(self) -> None:
+    def show_plot(self, show_residual=False) -> None:
         """
         Show the plot of the measured and simulated transmission spectra.
         """
-        return self.generate_plot().show()
+        return self.generate_plot(show_residual=show_residual).show()
