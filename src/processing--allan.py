@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import inf
@@ -6,6 +8,7 @@ from scipy import signal
 from lib.analysis.analysis import (
     PhaseAllanAnalyser,
 )
+from lib.files import get_reports_path
 from lib.plots import use_latex
 from lib.shortcuts import get_measurement
 
@@ -18,6 +21,11 @@ plot_adev = True
 ####################################################################################################
 
 # Measurement name.
+
+measurement_names = [
+    "flame_bottom_5s_phi0.7_2025-06-19-11-41-09",
+]
+"""List of measurement names to process."""
 
 baseline_names = []
 """List of baseline measurement names to use for processing."""
@@ -161,12 +169,7 @@ def join_measurements(measurement_names):
 
 # Get the measured transmission spectrum.
 
-time, reference_amp, sample_amp = join_measurements(
-    [
-        "flame_bottom_5s_phi0.7_2025-06-19-11-41-09",
-    ]
-)
-
+time, reference_amp, sample_amp = join_measurements(measurement_names=measurement_names)
 amp = sample_amp
 
 # ---------------------------------------------------------
@@ -237,8 +240,13 @@ if plot_adev:
     plt.grid(True, which="both", ls="-", color="0.85")
     plt.show()
 
+
+first_name = measurement_names[0]
+filename = f"allan_deviation_{first_name.split('/')[-1]} @ {datetime.now().strftime('%Y-%m-%d %H-%M-%S')}.csv"
+output_path = f"{get_reports_path()}{filename}"
+
 np.savetxt(
-    "allan_deviation.csv",
+    output_path,
     np.column_stack((aa.tau, aa.dev, aa.deverr)),
     delimiter=",",
     header="tau,adev,adev_err",
