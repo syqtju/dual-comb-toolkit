@@ -10,3 +10,5 @@ TOOTH_STD_THRESHOLD: float = 0.1
 DATABASE: str = 'hitran'
 WAVELENGTH_STEP: float = 0.01
 GPU_DEVICE_ID: str | int = 'nvidia'
+ALLAN_NR_POINTS: int = 100
+ALLAN_METHOD: str = 'adev'
