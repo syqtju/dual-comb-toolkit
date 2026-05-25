@@ -16,7 +16,7 @@ def parse_args():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Launch fitting of simulated measurements in separate terminals."
+        description="Join the reports of individual simulated measurements."
     )
     parser.add_argument(
         "-b",
@@ -24,7 +24,7 @@ def parse_args():
         type=str,
         default=DEFAULT_BASE_NAME,
         help="Base name for the reports to join. "
-        "The n-th report file is constructed as `<base_name>_<n>.txt`.",
+        "The n-th report file is constructed as `<base_name>_<n>.csv`.",
     )
     parser.add_argument(
         "-n",
