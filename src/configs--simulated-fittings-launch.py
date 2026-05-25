@@ -6,7 +6,7 @@ from pathlib import Path
 from time import strftime
 
 this_script_dir = Path(__file__).resolve().parent
-script = str(this_script_dir / "fit-simulated-measurement.py")
+script = str(this_script_dir / "configs--simulated-fittings-perform.py")
 python = sys.executable
 
 timestr = strftime("%Y%m%d-%H%M%S")
