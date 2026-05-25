@@ -1,16 +1,18 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from scipy.fft import fft as scipy_fft
-from scipy.fft import fftfreq
+from scipy.fft import fft, fftfreq
 
 if TYPE_CHECKING:
     from numpy import ndarray
 
 
-def fft(x: "ndarray", y: "ndarray") -> "tuple[ndarray, ndarray]":
+def compute_raw_fft(x: "ndarray", y: "ndarray") -> "tuple[ndarray, ndarray]":
     """
-    Compute the Fast Fourier Transform (FFT) of a time series.
+    Compute the Fast Fourier Transform (FFT) of a real-valued
+    time series. The second half of the FFT output (negative
+    frequencies) is discarded since it is redundant (complex
+    conjugates) for real-valued inputs.
 
     Parameters
     ----------
@@ -22,12 +24,15 @@ def fft(x: "ndarray", y: "ndarray") -> "tuple[ndarray, ndarray]":
     Returns
     -------
     tuple[ndarray, ndarray]
-        Tuple containing the x and y values of the FFT.
+        Tuple containing the x (real positive frequencies) and
+        y (complex amplitude) values of the FFT.
     """
     N = len(x)  # Number of sample points
     T = x[1] - x[0]  # Sample spacing
-    yf = scipy_fft(y)
+
+    yf = fft(y)[: N // 2]
     xf = fftfreq(N, T)[: N // 2]
+
     return xf, yf
 
 
@@ -47,14 +52,18 @@ def compute_complex_fft(x: "ndarray", y: "ndarray") -> "tuple[ndarray, ndarray]"
     tuple[ndarray, ndarray]
         Tuple containing the frequency and complex values (amplitude + phase) of the FFT.
     """
-    xf, yf = fft(x, y)
-    N = len(x)  # Number of sample points
-    x_data = xf
-    y_data = 2.0 / N * yf[0 : N // 2]
-    return x_data, y_data
+    xf, yf = compute_raw_fft(x, y)
+
+    N = len(x)
+    yf = 2.0 / N * yf
+    yf[0] /= 2
+    if N % 2 == 0:
+        yf[-1] /= 2
+
+    return xf, yf
 
 
-def compute_fft(x: "ndarray", y: "ndarray") -> "tuple[ndarray, ndarray]":
+def compute_real_fft(x: "ndarray", y: "ndarray") -> "tuple[ndarray, ndarray]":
     """
     Obtain the positive Fast Fourier Transform frequency and amplitude of a time series.
 
