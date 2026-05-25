@@ -93,8 +93,16 @@ It is recommended only for generating publication-quality figures.
 
 ## Usage
 
-If using HITRAN/HITEMP, you will need to log in with your HITRAN credentials the first time you
-simulate an absorption spectrum. Other databases may require their own credentials.
+If using HITRAN/HITEMP, you will need to log in with your HITRAN credentials before you start.
+Do that using:
+
+```bash
+export HITRAN_EMAIL="your_email@example.com"
+export HITRAN_PASSWORD="your_password"
+python3 -c "from radis.api.hitempapi import setup_credentials; setup_credentials()"
+```
+
+Other databases may require their own credentials and login procedures.
 
 **Note**: The first time you run the simulator, the database will be downloaded, and this could
 take some time. Please be patient!
