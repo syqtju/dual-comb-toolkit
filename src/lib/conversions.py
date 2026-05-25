@@ -19,6 +19,7 @@ def pa_to_bar(p: float) -> float:
         Pressure in bar.
     """
     from astropy import units as u
+
     return (p * u.Pa).to(u.bar).value
 
 
@@ -61,8 +62,8 @@ def wavenumber_to_wavelength(wn: float) -> float:
 
 def delta_wavelength_to_delta_wavenumber(delta_wl, central_wl):
     """
-    Convert a small wavelength range around a central wavelength to a wavenumber 
-    range. This is done by using the formula: 
+    Convert a small wavelength range around a central wavelength to a wavenumber
+    range. This is done by using the formula:
     `delta_wn = delta_wl / central_wl^2`.
 
     Parameters
@@ -84,7 +85,7 @@ def delta_frequency_to_delta_wavelength(delta_fr, central_fr):
     """
     Convert a small frequency range around a central frequency to a wavelength
     range. This is done by using the formula:
-    `delta_wl = delta_fr * c / central_fr^2`. 
+    `delta_wl = delta_fr * c / central_fr^2`.
 
     Parameters
     ----------
@@ -98,4 +99,40 @@ def delta_frequency_to_delta_wavelength(delta_fr, central_fr):
     float
         The wavelength range in nm.
     """
-    return delta_fr * c / central_fr ** 2 * 1e9
+    return delta_fr * c / central_fr**2 * 1e9
+
+
+def rh_to_vmr(t, rh, p=101325):
+    """
+    Convert temperature (°C) and relative humidity (%) to water vapor VMR.
+    Note that the empirical formula used here is valid for -45 °C ≤ T ≤ 60 °C.
+
+    Parameters
+    ----------
+    t : float or array
+        Temperature in °C
+    rh : float or array
+        Relative humidity in % (0–100)
+    p : float
+        Total pressure in Pa (default = 101325)
+
+    Returns
+    -------
+    vmr : float or array
+        Water vapor volume mixing ratio (mole fraction)
+    """
+    import numpy as np
+
+    t = np.asarray(t)
+    rh = np.asarray(rh) / 100.0
+
+    # Magnus formula for saturation vapor pressure in Pa
+    e_s = 6.11 * np.exp((17.62 * t) / (243.12 + t)) * 100.0
+
+    # actual vapor pressure
+    e = rh * e_s
+
+    # volume mixing ratio (mole fraction)
+    vmr = e / p
+
+    return float(vmr)
