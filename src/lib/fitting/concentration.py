@@ -57,12 +57,13 @@ def assemble_normal_fitter(
         Simulator used for the fitting.
     """
     from lib.combs import to_frequency
-    from lib.defaults import DATABASE
+    from lib.defaults import DATABASE, WAVELENGTH_STEP
     from lib.simulations import Simulator
 
     simulator: "Optional[Simulator]" = kwargs.get("simulator", None)
     use_gpu: bool = kwargs.get("use_gpu", False)
     database: str = kwargs.get("database", DATABASE)
+    wavelength_step: float = kwargs.get("wavelength_step", WAVELENGTH_STEP)
 
     # Obtain simulator
 
@@ -75,6 +76,7 @@ def assemble_normal_fitter(
             length=conditions["length"],
             use_gpu=use_gpu,
             database=database,
+            wavelength_step=wavelength_step,
         )
     else:
         s = simulator
@@ -216,7 +218,7 @@ def fit_concentration(
     upper_bound : float, optional
         Upper bound for the concentration. Defaults to 1.
     database : str, optional
-        The database to use for the simulation. Either 'hitran' or 'hitemp'. Defaults to 'hitran' 
+        The database to use for the simulation. Either 'hitran' or 'hitemp'. Defaults to 'hitran'
         (defined in `lib.defaults`). Only used if `simulator` is not provided.
     verbose : bool, optional
         Whether to print the results of the fitting. Defaults to False.
@@ -237,10 +239,11 @@ def fit_concentration(
         Simulator used for the fitting. Only returned if `fitter` is 'normal' and the simulator was
         initialized within this function.
     """
-    from lib.defaults import DATABASE
+    from lib.defaults import DATABASE, WAVELENGTH_STEP
 
     tol = 1e-6
     database = kwargs.get("database", DATABASE)
+    wavelength_step = kwargs.get("wavelength_step", WAVELENGTH_STEP)
     verbose = kwargs.get("verbose", False)
     simulator = None
 
@@ -267,6 +270,7 @@ def fit_concentration(
             n_points=n_points,
             points=points,
             database=database,
+            wavelength_step=wavelength_step,
         )
     elif fitter == "normal":
         simulator: "Optional[Simulator]" = kwargs.get("simulator", None)
@@ -282,6 +286,7 @@ def fit_concentration(
             simulator=simulator,
             use_gpu=use_gpu,
             database=database,
+            wavelength_step=wavelength_step,
         )
 
     # Objective function to minimize
@@ -376,8 +381,10 @@ class ConcentrationFitter:
     upper_bound : float, optional
         Upper bound for the concentration. Defaults to 1.
     database : str, optional
-        The database to use for the simulation. Either 'hitran' or 'hitemp'. Defaults to 'hitran' 
+        The database to use for the simulation. Either 'hitran' or 'hitemp'. Defaults to 'hitran'
         (defined in `lib.defaults`). Only used if `simulator` is not provided.
+    wavelength_step : float, optional
+        The step size for the wavelength grid. Defaults to `WAVELENGTH_STEP` (defined in `lib.defaults`).
     verbose : bool, optional
         Whether to print the results of the fitting. Defaults to False.
     """
@@ -389,7 +396,7 @@ class ConcentrationFitter:
         wl_max: float,
         **kwargs: dict[str, float],
     ) -> None:
-        from lib.defaults import DATABASE
+        from lib.defaults import DATABASE, WAVELENGTH_STEP
 
         # Measurement parameters
 
@@ -407,6 +414,7 @@ class ConcentrationFitter:
         self.fitter: str = kwargs.get("fitter", "normal")
         self.verbose: bool = kwargs.get("verbose", False)
         self.database: str = kwargs.get("database", DATABASE)
+        self.wavelength_step: float = kwargs.get("wavelength_step", WAVELENGTH_STEP)
 
         if self.lower_bound >= self.upper_bound:
             raise ValueError("Lower bound must be less than upper bound.")
@@ -500,24 +508,27 @@ class ConcentrationFitter:
         if self.verbose:
             print(f"Fitting {self._pre_meas_trasmission.meas_name} ... ", end="")
 
-        concentration, sim_freq, sim_amp, meas_freq, meas_amp, self.simulator = fit_concentration(
-            self._pre_meas_trasmission.x_hz,
-            self._pre_meas_trasmission.y_hz,
-            self.molecule,
-            self.wl_min,
-            self.wl_max,
-            self.conditions,
-            self.initial_guess,
-            fitter=fitter,
-            lower_bound=self.lower_bound,
-            upper_bound=self.upper_bound,
-            verbose=self.verbose,
-            simulator=self.simulator,
-            use_gpu=use_gpu,
-            exit_gpu=self._exit_gpu,
-            n_points=self.n_points,
-            points=self.points,
-            database=self.database,
+        concentration, sim_freq, sim_amp, meas_freq, meas_amp, self.simulator = (
+            fit_concentration(
+                self._pre_meas_trasmission.x_hz,
+                self._pre_meas_trasmission.y_hz,
+                self.molecule,
+                self.wl_min,
+                self.wl_max,
+                self.conditions,
+                self.initial_guess,
+                fitter=fitter,
+                lower_bound=self.lower_bound,
+                upper_bound=self.upper_bound,
+                verbose=self.verbose,
+                simulator=self.simulator,
+                use_gpu=use_gpu,
+                exit_gpu=self._exit_gpu,
+                n_points=self.n_points,
+                points=self.points,
+                database=self.database,
+                wavelength_step=self.wavelength_step
+            )
         )
 
         self._sim_transmission = SimulatedSpectrum(

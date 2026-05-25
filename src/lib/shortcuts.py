@@ -438,6 +438,9 @@ def fit_simulated_measurement_concentration(
         `use_gpu` is set to True in the simulator.
     return_simulator : bool, optional
         Whether to return the simulator object after the simulation. Default is False.
+    wavelength_step : float, optional
+        The step size for the wavelength grid in nm. Defaults to `WAVELENGTH_STEP` (defined in
+        `lib.defaults`). Only applies if `simulator` is not provided.
 
     Returns
     -------
