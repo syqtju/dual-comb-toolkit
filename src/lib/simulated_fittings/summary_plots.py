@@ -59,6 +59,24 @@ def _teeth_legend_label(n_teeth: int, max_teeth: int) -> str:
     return f"{n_teeth}-{n_teeth + 4} teeth"
 
 
+def _value_at(d: dict[str, list[float]], spacing_ghz: float, series_key: str) -> "float | None":
+    """Value of ``series_key`` at a comb spacing, exact or linearly interpolated.
+
+    Returns ``None`` if the spacing is outside the available range.
+    """
+    spacings, ys = d["spacings"], d[series_key]
+    for s, y in zip(spacings, ys):
+        if abs(s - spacing_ghz) < 1e-9:  # exact (within float tolerance)
+            return y
+    below = [s for s in spacings if s < spacing_ghz]
+    above = [s for s in spacings if s > spacing_ghz]
+    if not below or not above:
+        return None
+    s_lo, s_hi = max(below), min(above)
+    y_lo, y_hi = ys[spacings.index(s_lo)], ys[spacings.index(s_hi)]
+    return y_lo + (y_hi - y_lo) * (spacing_ghz - s_lo) / (s_hi - s_lo)
+
+
 def _summary_figure(
     data: dict[int, dict[str, list[float]]],
     series_key: str,
@@ -66,8 +84,13 @@ def _summary_figure(
     out_stem: str,
     reference: "float | None" = None,
     legend_loc: str = "best",
+    highlight: "list[tuple[int, float]] | None" = None,
 ) -> None:
-    """Render one summary figure (main axes only) and save it as svg + pdf + png."""
+    """Render one summary figure (main axes only) and save it as svg + pdf + png.
+
+    ``highlight`` is an optional list of ``(number_of_teeth, comb_spacing_GHz)`` configurations
+    to mark on the figure.
+    """
     cmap = get_cmap("brg", len(data))
     max_teeth = max(data) if data else 0
 
@@ -84,6 +107,17 @@ def _summary_figure(
         if label:
             kwargs["label"] = label
         ax.plot(d["spacings"], d[series_key], "o-", **kwargs)
+
+    # Mark the selected configurations.
+    for n_teeth, spacing_ghz in highlight or ():
+        d = data.get(n_teeth)
+        value = _value_at(d, spacing_ghz, series_key) if d else None
+        if value is None:
+            continue
+        ax.plot(
+            spacing_ghz, value, "o", markersize=9, mfc=(1, 1, 1, 0.6), mec="black", zorder=6
+        )
+        ax.plot(spacing_ghz, value, "x", color="black", zorder=7)
 
     ax.set_ylabel(ylabel, fontdict={"size": article_text_size})
     ax.set_xlabel("Comb Spacing [GHz]", fontdict={"size": article_text_size})
@@ -105,7 +139,12 @@ def _summary_figure(
 
 
 def make_summary_plots(
-    csv_path: str, out_dir: str, molecule: str, vmr_true: float
+    csv_path: str,
+    out_dir: str,
+    molecule: str,
+    vmr_true: float,
+    highlight: "list[tuple[int, float]] | None" = None,
+    stem_prefix: str = "summary",
 ) -> list[str]:
     """Produce the two per-condition summary figures from a results report.
 
@@ -119,6 +158,11 @@ def make_summary_plots(
         Molecule name, used to build the concentration y-axis label.
     vmr_true : float
         The condition's true VMR, drawn as a dashed reference line on the concentration plot.
+    highlight : list[tuple[int, float]], optional
+        ``(number_of_teeth, comb_spacing_GHz)`` configurations to mark on both figures.
+    stem_prefix : str, optional
+        Filename stem prefix; figures are ``<prefix>-conc`` and ``<prefix>-sdv``. Defaults to
+        ``"summary"``.
 
     Returns
     -------
@@ -132,8 +176,8 @@ def make_summary_plots(
     if not data:
         return []
 
-    conc_stem = os.path.join(out_dir, "summary-conc")
-    sdv_stem = os.path.join(out_dir, "summary-sdv")
+    conc_stem = os.path.join(out_dir, f"{stem_prefix}-conc")
+    sdv_stem = os.path.join(out_dir, f"{stem_prefix}-sdv")
 
     _summary_figure(
         data,
@@ -142,6 +186,7 @@ def make_summary_plots(
         out_stem=conc_stem,
         reference=vmr_true,
         legend_loc="lower right",
+        highlight=highlight,
     )
     _summary_figure(
         data,
@@ -150,6 +195,7 @@ def make_summary_plots(
         out_stem=sdv_stem,
         reference=None,
         legend_loc="upper right",
+        highlight=highlight,
     )
 
     return [conc_stem, sdv_stem]
