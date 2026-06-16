@@ -46,9 +46,22 @@ def get_reports_path() -> str:
     return os.path.join(root_path, "reports/")
 
 
+def get_simulations_path() -> str:
+    """
+    Get the simulations folder path (outputs of the simulated-fittings pipeline).
+
+    Returns
+    -------
+    str
+        The simulations folder path.
+    """
+    root_path = get_root_path()
+    return os.path.join(root_path, "simulations/")
+
+
 def get_configurations_path() -> str:
     """
-    Get the configurations folder path.
+    Get the configurations folder path (where simulation config `.py` files live).
 
     Returns
     -------
@@ -235,56 +248,6 @@ def initialize_figures_folder(foldername) -> str:
         os.makedirs(folder_path)
 
     return folder_path
-
-
-def read_configurations(filename: str) -> tuple[list[float], list[int]]:
-    """
-    Read configurations from a file.
-
-    Parameters
-    ----------
-    filename : str
-        The name of the file containing configurations.
-
-    Returns
-    -------
-    tuple[list[float], list[int]]
-        A tuple containing two lists: comb spacings and numbers of teeth.
-    """
-    frequencies = []
-    numbers_of_teeth = []
-
-    with open(f"{get_configurations_path()}{filename}", "r") as file:
-        for line in file:
-            if line.strip():  # Skip empty lines
-                freq, teeth = map(float, line.split())
-                frequencies.append(freq)
-                numbers_of_teeth.append(int(teeth))
-
-    return frequencies, numbers_of_teeth
-
-
-def save_configurations(
-    filename: str, comb_spacings: list[float], numbers_of_teeth: list[int]
-) -> None:
-    """
-    Save configurations to a file.
-
-    Parameters
-    ----------
-    filename : str
-        The name of the file to save configurations.
-    comb_spacings : list[float]
-        List of comb spacings.
-    numbers_of_teeth : list[int]
-        List of numbers of teeth.
-    """
-    config_folder = get_configurations_path()
-    if not os.path.exists(config_folder):
-        os.makedirs(config_folder)
-    with open(f"{config_folder}{filename}", "w") as file:
-        for freq, teeth in zip(comb_spacings, numbers_of_teeth):
-            file.write(f"{freq} {teeth}\n")
 
 
 def save_mapping_report(

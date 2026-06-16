@@ -300,18 +300,43 @@ Here is an example of the output plot:
 <details>
 <summary><b>Optimization of comb parameters</b></summary>
 
-The `src/configs--simulated-fittings-perform.py` script allows you to generate synthetic dual-comb
-measurements with varying comb parameters (number of teeth and comb spacing) and fit them to
-retrieve gas concentration. This helps in optimizing the comb parameters for specific experimental
-setups, by studying their effect on the fitting accuracy. You can define the optimization parameters 
-directly in the script. Navigate to the `src` directory and run the script as follows:
+This pipeline generates synthetic dual-comb measurements with varying comb parameters (number of
+teeth and comb spacing) and fits them to retrieve gas concentration. This helps in optimizing the
+comb parameters for specific experimental setups, by studying their effect on the fitting accuracy.
+
+The whole workflow is driven by a **single config file** and a **single command**. The config file
+is a plain Python module: every parameter is a global default, and you list the physical conditions
+to study under `CONDITIONS` — each identified by a unique `id` and free to override any global
+(molecule, temperature, laser wavelength, the sweep itself, whether to emit extra plots/reports,
+etc.). See `configurations/default_config.py` for a documented template; place your own config
+files alongside it in the `configurations/` folder. All conditions are simulated **in
+parallel** across worker processes (and on the GPU as well, if you select a GPU fitter such as
+`normal_gpu` — which the template does by default).
+
+Navigate to the `src` directory and run:
 
 ```bash
-python configs--simulated-fittings-perform.py
+python configs--simulated-fittings-run.py                                  # configurations/default_config.py
+python configs--simulated-fittings-run.py ../configurations/my_run.py       # uses another config file
 ```
 
-The script generates a report in the `reports/` directory, containing the fitting results for each set of
-comb parameters. Here is an example of the report:
+A live dashboard shows one progress bar (with ETA) per condition while the run proceeds. Each run
+creates a single timestamped folder under `simulations/`, with one subfolder **per condition id**
+holding all of that condition's outputs together:
+
+- `simulations/run-<timestamp>/<id>/results.csv` — the fitting results for every comb
+  configuration.
+- `simulations/run-<timestamp>/<id>/summary-conc.{svg,pdf,png}` and `summary-sdv.{svg,pdf,png}` —
+  summary plots of fitted concentration and standard deviation versus comb spacing.
+- `simulations/run-<timestamp>/<id>/details/` — per-configuration CSVs of every individual fit (only
+  if `detailed_report` is enabled for that condition).
+- `simulations/run-<timestamp>/<id>/<teeth> x <spacing> GHz/` — per-fit spectra plots (only if
+  `generate_plots` is enabled for that condition).
+
+The run folder also contains `run.log` (the full detailed log) and `config.snapshot.py` (a copy of
+the exact config used, for reproducibility).
+
+Here is an example of a results report:
 
 ```txt
 Number of teeth,Comb spacing (Hz),Mean concentration (VMR),Standard deviation (VMR)
@@ -322,33 +347,21 @@ Number of teeth,Comb spacing (Hz),Mean concentration (VMR),Standard deviation (V
 5,1400000000.0,0.008655304687500026,0.0006965584456108906
 5,1500000000.0,0.00885082812500003,0.0008205821120921131
 5,1600000000.0,0.008879328125000028,0.0007775362153379832
-5,1700000000.0,0.008766578125000028,0.0010174894999794189
-5,1800000000.0,0.00907967187500003,0.000766652188654768
-5,1900000000.0,0.008935507812500031,0.0011732676952238023
-5,2000000000.0,0.00903296093750003,0.0009908021498187501
-5,2100000000.0,0.00914619531250003,0.0013056479607271966
-5,2200000000.0,0.008427351562500027,0.0013634225145963083
-5,2300000000.0,0.008553406250000029,0.0013969829923649918
-5,2400000000.0,0.008159531250000025,0.001660422555846814
-5,2500000000.0,0.007942726562500026,0.0019770452989126648
-5,2600000000.0,0.007925281250000023,0.0019076125334136248
-5,2700000000.0,0.007906195312500025,0.001968696081401424
 ...
 ```
 
-The script `src/configs--simulated-fittings-plot.py` can be used to generate plots from the report
-data, to help visualize the optimization results and choose the best comb parameters. Run it as
-follows (make sure you change the path to the report file in the script if needed):
-
-```bash
-python configs--simulated-fittings-plot.py
-```
-
-Here is an example of the output plots:
+And an example of the summary plots:
 
 ![Example optimization plots concentration](assets/conf-conc-example.svg) 
 
 ![Example optimization plots std](assets/conf-sdv-example.svg)
+
+To debug a **single** condition in the foreground (synchronously, with verbose per-fit output), use
+the companion script, which reads the same config file:
+
+```bash
+python configs--simulated-fittings-perform.py --condition <id>   # defaults to the first condition
+```
 
 </details>
 
