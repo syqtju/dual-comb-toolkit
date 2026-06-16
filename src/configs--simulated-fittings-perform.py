@@ -108,12 +108,15 @@ of teeth."""
 
 generate_plots = True
 """If True, plots of the simulated and fitted spectra will be generated."""
+plot_every = 10
+"""If `generate_plots` is True, this parameter specifies how often to generate plots. For example, if
+`plot_every` is 10, a plot will be generated for every 10th simulation."""
 use_latex = False
 """If True, LaTeX will be used for plotting. Requires LaTeX to be installed on the system."""
 
 # Reports
 
-detailed_report = True
+detailed_report = False
 """If True, a detailed report containing the fitted concentrations of each configuration will be 
 generated in CSV files."""
 
@@ -272,6 +275,9 @@ if use_latex:
 # Simulate for every combination of number of teeth and comb spacing                               #
 ####################################################################################################
 
+if plot_every is None:
+    plot_every = 1
+
 for nr_teeth, spacing in zip(numbers_of_teeth, comb_spacings):
     # Update iteration variables ###################################################################
 
@@ -368,7 +374,7 @@ for nr_teeth, spacing in zip(numbers_of_teeth, comb_spacings):
 
         # Plot the simulated and measured transmission spectra #####################################
 
-        if not generate_plots:
+        if not generate_plots or (i + 1) % plot_every != 0:
             continue
 
         meas = f.measured_transmission
