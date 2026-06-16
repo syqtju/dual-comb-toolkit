@@ -44,11 +44,14 @@ laser_wavelength = 3427.43  # nm
 
 # Simulation range
 
-wl_min = 3427.0  # nm
+wl_range = 0.15  # nm
+wl_min = laser_wavelength - wl_range / 2  # nm
 """Minimum wavelength of the simulation range."""
-wl_max = 3427.9  # nm
+wl_max = laser_wavelength + wl_range / 2  # nm
 """Maximum wavelength of the simulation range."""
-min_comb_span = 0.15  # nm
+wl_step = wl_range / 50  # nm
+"""Step size for the wavelength grid in nm."""
+min_comb_span = 0.03  # nm
 """Minimum comb span to consider a configuration valid. If the comb span is smaller than this value,
 it will be skipped."""
 
@@ -360,6 +363,7 @@ for nr_teeth, spacing in zip(numbers_of_teeth, comb_spacings):
                 simulator=simulator,
                 exit_gpu=False,
                 return_simulator=True,
+                wavelength_step=wl_step,
             )
 
             fitting_results.append(f.concentration)
