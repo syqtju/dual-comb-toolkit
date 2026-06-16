@@ -56,6 +56,8 @@ def assemble_normal_fitter(
     Simulator
         Simulator used for the fitting.
     """
+    import numpy as np
+
     from lib.combs import to_frequency
     from lib.defaults import DATABASE, WAVELENGTH_STEP
     from lib.simulations import Simulator
@@ -95,7 +97,9 @@ def assemble_normal_fitter(
         Get the simulated transmission spectrum for a given concentration.
         """
         exit_gpu: bool = kwargs.get("exit_gpu", True)
-        s.vmr = conc
+        # The optimizer hands the parameter in as a 1-element array; collapse it to a plain
+        # float so it doesn't propagate as an ndarray (NumPy 1.25 deprecates ndim>0 -> scalar).
+        s.vmr = float(np.ravel(conc)[0])
         s.compute_transmission_spectrum(wl_min=wl_min, wl_max=wl_max, exit_gpu=exit_gpu)
         wl_ref, a_ref = s.get_transmission_spectrum(wl_min, wl_max)
         return to_frequency(wl_ref, a_ref)
